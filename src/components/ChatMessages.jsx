@@ -1,17 +1,14 @@
 import React, { useEffect, useRef } from "react";
+import { MessageStatus } from "../hooks/useChat";
 
-const MessageStatus = {
-  SENDING: "sending",
-  SENT: "sent",
-  ERROR: "error",
-};
 const ChatMessages = ({ messages = [] }) => {
   const messagesEndRef = useRef(null);
-  // const [preservedMessages, setPreservedMessages] = useState([]);
+
+  // Scroll to bottom when messages update
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
-  // Scroll to bottom when preserved messages update
+
   useEffect(() => {
     scrollToBottom();
   }, [messages]);

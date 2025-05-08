@@ -11,6 +11,9 @@ const ChatContainer = ({
 }) => {
   return (
     <div className="chat-container">
+      <div className="chat-header">
+        <h2>Chat</h2>
+      </div>
       <ChatMessages messages={messages} />
       <ChatInput
         inputMessage={inputMessage}

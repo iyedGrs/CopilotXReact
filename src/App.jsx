@@ -1,10 +1,8 @@
 /* eslint-disable no-unused-vars */
-import { useState } from "react";
 import "./App.css";
 import Sidebar from "./components/Sidebar";
 import ChatContainer from "./components/ChatContainer";
 import useChat from "./hooks/useChat";
-import { useCoAgent, useCopilotChat } from "@copilotkit/react-core";
 
 function App() {
   const {
@@ -33,7 +31,7 @@ function App() {
         inputMessage={inputMessage}
         setInputMessage={setInputMessage}
         onSendMessage={handleSendMessage}
-        disabled={false}
+        disabled={!currentChat}
       />
     </div>
   );
