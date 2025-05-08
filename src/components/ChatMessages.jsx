@@ -5,13 +5,9 @@ const MessageStatus = {
   SENT: "sent",
   ERROR: "error",
 };
-
-// const STORAGE_KEY = "chat_app_data";
-
 const ChatMessages = ({ messages = [] }) => {
   const messagesEndRef = useRef(null);
   // const [preservedMessages, setPreservedMessages] = useState([]);
-
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
@@ -19,66 +15,6 @@ const ChatMessages = ({ messages = [] }) => {
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
-
-  // // Message preservation logic
-  // useEffect(() => {
-  //   // Create a map of existing messages for easier lookup and updates
-  //   const existingMessagesMap = new Map(
-  //     preservedMessages.map((msg) => [msg.id, msg])
-  //   );
-
-  //   // Process new and updated messages
-  //   const updatedMessages = [];
-  //   let hasChanges = false;
-
-  //   messages.forEach((msg) => {
-  //     // Skip messages without content or text
-  //     if (!msg || (!msg.content && !msg.text)) return;
-
-  //     const existingMsg = existingMessagesMap.get(msg.id);
-
-  //     // Case 1: New message - add it
-  //     if (!existingMsg) {
-  //       const newMsg = {
-  //         ...JSON.parse(JSON.stringify(msg)),
-  //         timestamp: msg.timestamp || Date.now(),
-  //       };
-  //       updatedMessages.push(newMsg);
-  //       hasChanges = true;
-  //     }
-  //     // Case 2: Existing message but with updated content - update it
-  //     else if (
-  //       (msg.content && msg.content !== existingMsg.content) ||
-  //       (msg.text && msg.text !== existingMsg.text)
-  //     ) {
-  //       const updatedMsg = {
-  //         ...existingMsg,
-  //         content: msg.content || existingMsg.content,
-  //         text: msg.text || existingMsg.text,
-  //       };
-  //       updatedMessages.push(updatedMsg);
-  //       hasChanges = true;
-  //     }
-  //     // Case 3: No changes - keep existing message
-  //     else {
-  //       updatedMessages.push(existingMsg);
-  //     }
-
-  //     // Remove from map to track processed messages
-  //     existingMessagesMap.delete(msg.id);
-  //   });
-
-  //   // Add any remaining preserved messages that weren't in the new messages array
-  //   existingMessagesMap.forEach((msg) => {
-  //     updatedMessages.push(msg);
-  //   });
-
-  //   // Only update state if there are actual changes
-  //   if (hasChanges) {
-  //     console.log("Updating preserved messages:", updatedMessages);
-  //     setPreservedMessages(updatedMessages);
-  //   }
-  // }, [messages]);
 
   // Format timestamp
   const formatTime = (timestamp) => {
@@ -92,7 +28,8 @@ const ChatMessages = ({ messages = [] }) => {
     (message) =>
       message &&
       ((message.content && message.content.trim() !== "") ||
-        (message.text && message.text.trim() !== ""))
+        (message.text && message.text.trim() !== "") ||
+        message.type === "ActionExecutionMessage")
   );
 
   // Sort messages by timestamp
@@ -113,14 +50,64 @@ const ChatMessages = ({ messages = [] }) => {
       </div>
     );
   }
-  console.log("this is the sorted messages", sortedMessages);
 
   return (
     <div className="chat-messages">
       {sortedMessages.map((message, index) => {
         const isAssistant =
           message.role === "assistant" || message.sender === "bot";
+        const isToolExecution = message.type === "ActionExecutionMessage";
 
+        // Special handling for tool execution messages
+        if (isToolExecution) {
+          const isPending = message.isPending;
+
+          // Skip rendering completed tool execution messages
+          if (!isPending) {
+            return null; // Don't display anything for completed tool calls
+          }
+
+          // Only render pending tool executions
+          return (
+            <div
+              key={message.id || index}
+              className="message tool-execution pending"
+            >
+              <div className="assistant-avatar tool-avatar">
+                <svg viewBox="0 0 24 24" width="24" height="24">
+                  <path
+                    fill="currentColor"
+                    d="M22 9V7h-2V5a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-2h2v-2h-2v-2h2v-2h-2V9zm-4 10H4V5h14zM6 13h5v4H6zm6-6h4v3h-4zm0 4h4v6h-4z"
+                  />
+                </svg>
+              </div>
+
+              <div className="message-content tool-content">
+                <div className="message-text">
+                  <div className="tool-header pending">
+                    <span className="tool-spinner"></span>
+                    <span>Calling {message.name} tool...</span>
+                  </div>
+
+                  {message.arguments && (
+                    <div className="tool-arguments">
+                      <div className="tool-section-label">Arguments:</div>
+                      <pre className="tool-data">
+                        {JSON.stringify(message.arguments, null, 2)}
+                      </pre>
+                    </div>
+                  )}
+                </div>
+
+                <div className="message-timestamp">
+                  {new Date(message.timestamp).toLocaleTimeString()}
+                </div>
+              </div>
+            </div>
+          );
+        }
+
+        // Regular message handling (unchanged)
         return (
           <div
             key={message.id || index}
@@ -165,6 +152,7 @@ const ChatMessages = ({ messages = [] }) => {
           </div>
         );
       })}
+
       <div ref={messagesEndRef} />
     </div>
   );

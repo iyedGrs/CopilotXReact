@@ -525,3 +525,90 @@ body {
     opacity: 1;
   }
 }
+/* Tool Execution Message Styles */
+.tool-execution {
+  border-radius: 8px;
+  margin: 10px 0;
+  background-color: #737679;
+  border-left: 3px solid #4285f4;
+  transition: all 0.3s ease;
+}
+
+.tool-execution.pending {
+  border-left-color: #fbbc05;
+}
+
+.tool-execution.success {
+  border-left-color: #c0dbc6;
+}
+
+.tool-avatar svg {
+  background-color: #679cb6;
+  border-radius: 6px;
+  padding: 3px;
+}
+
+.tool-content {
+  padding: 8px 0;
+}
+
+.tool-header {
+  display: flex;
+  align-items: center;
+  font-weight: 500;
+  margin-bottom: 8px;
+}
+
+.tool-header.pending {
+  color: #948865;
+}
+
+.tool-header.success {
+  color: #2bce57;
+}
+
+.tool-spinner {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  margin-right: 10px;
+  border: 2px solid rgba(251, 188, 5, 0.2);
+  border-radius: 50%;
+  border-top-color: #fbbc05;
+  animation: spin 1s linear infinite;
+}
+
+.tool-section-label {
+  font-size: 0.85rem;
+  font-weight: 500;
+  margin-bottom: 4px;
+  color: #cbd6e4;
+}
+
+.tool-arguments,
+.tool-result {
+  margin-bottom: 8px;
+  padding-left: 12px;
+}
+
+.tool-data {
+  background-color: rgba(209, 202, 202, 0.03);
+  border-radius: 6px;
+  padding: 8px;
+  margin: 0;
+  font-family: monospace;
+  font-size: 0.85rem;
+  overflow-x: auto;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.tool-result .tool-data {
+  background-color: rgba(175, 199, 182, 0.05);
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}

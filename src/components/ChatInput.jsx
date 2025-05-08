@@ -1,24 +1,17 @@
-import React, { useEffect } from "react";
+import React from "react";
 import "../App.css";
 import { Role, TextMessage } from "@copilotkit/runtime-client-gql";
-import { useCoAgent, useCopilotChat } from "@copilotkit/react-core";
+import { useCoAgent } from "@copilotkit/react-core";
 const ChatInput = ({
   inputMessage,
   setInputMessage,
   onSendMessage,
   disabled,
 }) => {
-  const {
-    state,
-    setState: agentSetState,
-    run: RunAgent,
-    start,
-    stop,
-  } = useCoAgent({
+  const { state, run: RunAgent } = useCoAgent({
     initialState: {},
     name: "simple_agent",
   });
-  const { appendMessage } = useCopilotChat();
 
   // Use the onSendMessage prop directly rather than creating our own handleSubmit
   // This ensures we use the complete message handling flow from useChat
