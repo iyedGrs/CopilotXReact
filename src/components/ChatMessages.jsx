@@ -23,24 +23,8 @@ const ChatMessages = ({ messages = [] }) => {
     return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
   };
 
-  // Filter out empty messages, support content or text
-  const validMessages = messages.filter(
-    (message) =>
-      message &&
-      ((message.content && message.content.trim() !== "") ||
-        (message.text && message.text.trim() !== "") ||
-        message.type === "ActionExecutionMessage")
-  );
-
-  // Sort messages by timestamp
-  const sortedMessages = [...validMessages].sort((a, b) => {
-    const aTime = a.timestamp || a.createdAt || 0;
-    const bTime = b.timestamp || b.createdAt || 0;
-    return aTime - bTime;
-  });
-
   // If there are no messages, show an empty state
-  if (validMessages.length === 0) {
+  if (messages.length === 0) {
     return (
       <div className="chat-messages">
         <div className="empty-chat-state">
@@ -53,7 +37,7 @@ const ChatMessages = ({ messages = [] }) => {
 
   return (
     <div className="chat-messages">
-      {sortedMessages.map((message, index) => {
+      {messages.map((message, index) => {
         const isAssistant =
           message.role === "assistant" || message.sender === "bot";
         const isToolExecution = message.type === "ActionExecutionMessage";

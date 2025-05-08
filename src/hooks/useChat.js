@@ -182,6 +182,7 @@ const useChat = () => {
   }, [visibleMessages, currentChatId]);
 
   // Compute display messages by processing and merging all message sources
+  // Compute display messages by processing and merging all message sources
   const getDisplayMessages = () => {
     const existingMsgs = (currentChat && currentChat.messages) || [];
 
@@ -205,9 +206,29 @@ const useChat = () => {
 
     const toolMessagesArray = Object.values(toolMessages);
 
-    return [...existingMsgs, ...streamingMsgs, ...toolMessagesArray];
-  };
+    // Combine all message sources
+    const allMessages = [
+      ...existingMsgs,
+      ...streamingMsgs,
+      ...toolMessagesArray,
+    ];
 
+    // Filter out empty messages (moved from ChatMessages component)
+    const validMessages = allMessages.filter(
+      (message) =>
+        message &&
+        ((message.content && message.content.trim() !== "") ||
+          (message.text && message.text.trim() !== "") ||
+          message.type === "ActionExecutionMessage")
+    );
+
+    // Sort messages by timestamp (moved from ChatMessages component)
+    return validMessages.sort((a, b) => {
+      const aTime = a.timestamp || a.createdAt || 0;
+      const bTime = b.timestamp || b.createdAt || 0;
+      return aTime - bTime;
+    });
+  };
   const handleSendMessage = (e) => {
     start();
     e.preventDefault();
