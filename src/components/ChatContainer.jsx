@@ -8,11 +8,13 @@ const ChatContainer = ({
   setInputMessage,
   onSendMessage,
   disabled,
+  activeChat,
 }) => {
   return (
     <div className="chat-container">
       <div className="chat-header">
-        <h2>Chat</h2>
+        <h2>{activeChat?.title || "Chat"}</h2>
+        {activeChat && <span className="chat-status">Active</span>}
       </div>
       <ChatMessages messages={messages} />
       <ChatInput

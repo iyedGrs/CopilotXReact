@@ -6,7 +6,7 @@ import { v4 as uuidv4 } from "uuid";
  * Hook for processing messages from different sources
  * Handles filtering, sorting, and processing of messages
  */
-const useMessageProcessor = (chatCore, visibleMessages) => {
+const useMessageProcessor = (chatCore, visibleMessages, currentThreadId) => {
   const { currentChat, chats, setChats, currentChatId } = chatCore;
   const [toolMessages, setToolMessages] = useState({});
   const lastVisibleMessages = useRef([]);
@@ -54,6 +54,9 @@ const useMessageProcessor = (chatCore, visibleMessages) => {
   // Process and update chat messages
   useEffect(() => {
     if (!currentChatId || !visibleMessages.length) return;
+    const currentChat = chats.find((chat) => chat.id === currentChatId);
+
+    const threadActivatedAt = currentChat?.threadActivatedAt || 0;
 
     // Get current chat messages
     setChats((prevChats) => {
@@ -78,7 +81,8 @@ const useMessageProcessor = (chatCore, visibleMessages) => {
       // Process all assistant and user messages
       visibleMessages.forEach((msg) => {
         if (!msg || (!msg.content && !msg.text)) return;
-
+        const msgTime = new Date(msg.createdAt).getTime();
+        if (msgTime < threadActivatedAt) return;
         const existingMsg = existingMessagesMap.get(msg.id);
 
         // Case 1: New message
@@ -148,11 +152,28 @@ const useMessageProcessor = (chatCore, visibleMessages) => {
 
   // Get display messages by processing and merging all message sources
   const getDisplayMessages = () => {
+    // Only show messages from the current chat
+    if (!currentChat || !currentThreadId) {
+      return [];
+    }
+
+    // Get messages already stored in the current chat
     const existingMsgs = (currentChat && currentChat.messages) || [];
 
-    // Only convert assistant messages to avoid duplicating user entries
+    // Get current chat's thread ID for filtering
+    const chatThreadId = currentChat.threadId;
+
+    // Only convert assistant messages from the current thread
     const visibleConverted = visibleMessages
-      .filter((vm) => vm.role === "assistant" && vm.content)
+      .filter((vm) => {
+        // Only include assistant messages from the current thread
+        return (
+          vm.role === "assistant" &&
+          vm.content &&
+          // Either there's no threadId (backward compatibility) or it matches current thread
+          vm.threadId === chatThreadId
+        );
+      })
       .map((vm) => ({
         id: vm.id,
         content: vm.content,
@@ -161,26 +182,34 @@ const useMessageProcessor = (chatCore, visibleMessages) => {
         sender: vm.role === "assistant" ? "bot" : "user",
         status: "sent",
         timestamp: new Date(vm.createdAt).getTime(),
+        threadId: chatThreadId,
       }));
 
     // Merge confirmed chat messages with real-time streaming messages
+    // but only include messages we don't already have
     const streamingMsgs = visibleConverted.filter(
       (vm) => !existingMsgs.some((m) => m.id === vm.id)
     );
 
-    const toolMessagesArray = Object.values(toolMessages);
+    // Get tool messages for the current thread only
+    const currentThreadToolMessages = Object.values(toolMessages).filter(
+      (msg) => msg.threadId === chatThreadId || !msg.threadId
+    );
 
     // Combine all message sources
     const allMessages = [
       ...existingMsgs,
       ...streamingMsgs,
-      ...toolMessagesArray,
+      ...currentThreadToolMessages,
     ];
 
-    // Filter out empty messages
+    // Filter out empty messages and messages from other threads
     const validMessages = allMessages.filter(
       (message) =>
         message &&
+        // Only show messages from current thread
+        (!message.threadId || message.threadId === chatThreadId) &&
+        // Make sure message has content
         ((message.content && message.content.trim() !== "") ||
           (message.text && message.text.trim() !== "") ||
           message.type === "ActionExecutionMessage")

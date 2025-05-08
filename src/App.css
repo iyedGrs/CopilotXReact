@@ -106,6 +106,7 @@ body {
   align-items: center;
   margin: 2px 0;
   font-size: 14px;
+  border-left: 3px solid transparent;
 }
 
 .chat-item:hover {
@@ -115,7 +116,9 @@ body {
 .chat-item.active {
   background-color: #343541;
   font-weight: 500;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.25);
+  border-left: 3px solid #10a37f; /* Green border on the left side */
+  position: relative; /* For the indicator */
 }
 
 .chat-title {
@@ -525,6 +528,7 @@ body {
     opacity: 1;
   }
 }
+
 /* Tool Execution Message Styles */
 .tool-execution {
   border-radius: 8px;
@@ -610,5 +614,111 @@ body {
 @keyframes spin {
   to {
     transform: rotate(360deg);
+  }
+}
+
+/* Chat header styles */
+.chat-header {
+  padding: 15px 20px;
+  background-color: #2a2b32;
+  border-bottom: 1px solid #393a3e;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.chat-header h2 {
+  font-size: 18px;
+  font-weight: 500;
+  color: #ececf1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 70%;
+}
+
+.chat-status {
+  background-color: #10a37f;
+  color: white;
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 500;
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0% {
+    opacity: 0.7;
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0.7;
+  }
+}
+
+/* Sidebar footer styles */
+.sidebar-footer {
+  padding: 15px;
+  border-top: 1px solid #393a3e;
+  margin-top: auto;
+}
+
+.clear-storage-btn {
+  width: 100%;
+  padding: 10px;
+  background-color: #6c2c2c;
+  border: 1px solid #8b3a3a;
+  color: white;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.clear-storage-btn:hover {
+  background-color: #8b3a3a;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+.clear-storage-btn:active {
+  transform: translateY(1px);
+}
+
+.new-chat-btn:disabled,
+.delete-chat-btn:disabled,
+.clear-storage-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  background-color: #444;
+}
+
+.chat-item.disabled {
+  pointer-events: none;
+  opacity: 0.6;
+}
+
+/* Add a loading indicator for better UX */
+.new-chat-btn:disabled::after,
+.clear-storage-btn:disabled::after {
+  content: "...";
+  animation: loading 1.5s infinite;
+}
+
+@keyframes loading {
+  0% {
+    content: ".";
+  }
+  33% {
+    content: "..";
+  }
+  66% {
+    content: "...";
   }
 }

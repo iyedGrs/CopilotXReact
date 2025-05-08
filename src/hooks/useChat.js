@@ -2,6 +2,7 @@
 import { useState } from "react";
 import { Role, TextMessage } from "@copilotkit/runtime-client-gql";
 import { useCoAgent, useCopilotChat } from "@copilotkit/react-core";
+import { useThread } from "../context/threadContext.jsx";
 
 // Import our custom hooks
 import useChatCore from "./useChatCore";
@@ -31,6 +32,7 @@ const useChat = () => {
   });
 
   const { appendMessage, visibleMessages, reset } = useCopilotChat();
+  const { currentThreadId, createNewThread } = useThread();
 
   // Chat state management through useChatCore
   const chatCore = useChatCore();
@@ -40,10 +42,15 @@ const useChat = () => {
   const [inputMessage, setInputMessage] = useState("");
 
   // Chat actions through useChatActions
-  const { createNewChat, selectChat, deleteChat } = useChatActions(chatCore);
+  const { createNewChat, selectChat, deleteChat, isTransitioning } =
+    useChatActions(chatCore);
 
   // Message processing through useMessageProcessor
-  const { displayMessages } = useMessageProcessor(chatCore, visibleMessages);
+  const { displayMessages } = useMessageProcessor(
+    chatCore,
+    visibleMessages,
+    currentThreadId
+  );
 
   // Message sending handler
   const handleSendMessage = (e) => {
@@ -57,6 +64,34 @@ const useChat = () => {
     stopAgent();
   };
 
+  // Function to clear all localStorage data
+  const clearStorage = () => {
+    if (
+      window.confirm(
+        "Are you sure you want to clear all chat data? This action cannot be undone."
+      )
+    ) {
+      // Clear all localStorage items
+      localStorage.clear();
+
+      // Reset the chat state
+      chatCore.setChats([]);
+      chatCore.setCurrentChatId(null);
+
+      // Create a new thread for fresh start
+      createNewThread();
+
+      // Reset CopilotKit chat
+      // reset();
+
+      // Provide feedback
+      alert("All chat data has been cleared. The page will refresh now.");
+
+      // Reload the page to ensure all components update correctly
+      window.location.reload();
+    }
+  };
+
   return {
     chats: chatCore.chats,
     currentChat,
@@ -68,6 +103,8 @@ const useChat = () => {
     deleteChat,
     MessageStatus,
     displayMessages,
+    clearStorage,
+    isTransitioning,
   };
 };
 

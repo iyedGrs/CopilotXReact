@@ -16,7 +16,6 @@ const ChatInput = ({
   // Use the onSendMessage prop directly rather than creating our own handleSubmit
   // This ensures we use the complete message handling flow from useChat
 
-  console.log("this is the state", state);
   return (
     <div className="chat-input">
       <form onSubmit={onSendMessage}>

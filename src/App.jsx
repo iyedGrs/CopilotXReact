@@ -3,6 +3,7 @@ import "./App.css";
 import Sidebar from "./components/Sidebar";
 import ChatContainer from "./components/ChatContainer";
 import useChat from "./hooks/useChat";
+import { useCopilotChat } from "@copilotkit/react-core";
 
 function App() {
   const {
@@ -15,16 +16,21 @@ function App() {
     selectChat,
     deleteChat,
     displayMessages,
+    clearStorage,
+    isTransitioning,
   } = useChat();
+  console.log("App isTransitioning state:", isTransitioning); // Debug log
 
   return (
     <div className="app-container">
       <Sidebar
         chats={chats}
-        currentChat={currentChat}
+        activeChat={currentChat}
         onSelectChat={selectChat}
         onNewChat={createNewChat}
         onDeleteChat={deleteChat}
+        onClearStorage={clearStorage}
+        isTransitioning={isTransitioning} // Pass the new prop
       />
       <ChatContainer
         messages={displayMessages}
@@ -32,6 +38,7 @@ function App() {
         setInputMessage={setInputMessage}
         onSendMessage={handleSendMessage}
         disabled={!currentChat}
+        activeChat={currentChat}
       />
     </div>
   );
