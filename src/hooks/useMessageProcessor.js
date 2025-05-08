@@ -193,7 +193,7 @@ const useMessageProcessor = (chatCore, visibleMessages, currentThreadId) => {
 
     // Get tool messages for the current thread only
     const currentThreadToolMessages = Object.values(toolMessages).filter(
-      (msg) => msg.threadId === chatThreadId || !msg.threadId
+      (msg) => msg.threadId === chatThreadId || (!msg.threadId && msg.isPending)
     );
 
     // Combine all message sources
