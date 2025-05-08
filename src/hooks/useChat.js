@@ -43,9 +43,51 @@ const useChat = () => {
   // derive currentChat from chats
   const currentChat = chats.find((c) => c.id === currentChatId) || null;
   const [inputMessage, setInputMessage] = useState("");
+  const [toolMessages, setToolMessages] = useState({});
 
   // track last processed visible message index to avoid re-processing
   const lastVisibleMessages = useRef([]);
+
+  // Process tool messages
+  useEffect(() => {
+    if (!visibleMessages || !visibleMessages.length) return;
+
+    // Create a single state object to track all updates
+    const updatedToolMessages = { ...toolMessages };
+
+    // First pass: Process all tool calls
+    visibleMessages.forEach((msg) => {
+      if (msg.name && msg.parentMessageId) {
+        const toolId = msg.id;
+        updatedToolMessages[toolId] = {
+          ...msg,
+          sender: "bot",
+          isPending: true,
+          timestamp: new Date(msg.createdAt).getTime(),
+          type: "ActionExecutionMessage",
+        };
+      }
+    });
+
+    // Second pass: Process all results to update the status of corresponding tools
+    visibleMessages.forEach((msg) => {
+      if (msg.type === "ResultMessage" && msg.actionExecutionId) {
+        const associatedToolId = msg.actionExecutionId;
+
+        if (updatedToolMessages[associatedToolId]) {
+          updatedToolMessages[associatedToolId] = {
+            ...updatedToolMessages[associatedToolId],
+            isPending: false,
+            result: msg.result,
+            status: msg.status,
+          };
+        }
+      }
+    });
+
+    setToolMessages(updatedToolMessages);
+  }, [visibleMessages]);
+
   useEffect(() => {
     if (!currentChatId || !visibleMessages.length) return;
 
@@ -139,6 +181,33 @@ const useChat = () => {
     });
   }, [visibleMessages, currentChatId]);
 
+  // Compute display messages by processing and merging all message sources
+  const getDisplayMessages = () => {
+    const existingMsgs = (currentChat && currentChat.messages) || [];
+
+    // Only convert assistant messages to avoid duplicating user entries
+    const visibleConverted = visibleMessages
+      .filter((vm) => vm.role === "assistant" && vm.content)
+      .map((vm) => ({
+        id: vm.id,
+        content: vm.content,
+        text: vm.content,
+        role: vm.role,
+        sender: vm.role === "assistant" ? "bot" : "user",
+        status: "sent",
+        timestamp: new Date(vm.createdAt).getTime(),
+      }));
+
+    // Merge confirmed chat messages with real-time streaming messages
+    const streamingMsgs = visibleConverted.filter(
+      (vm) => !existingMsgs.some((m) => m.id === vm.id)
+    );
+
+    const toolMessagesArray = Object.values(toolMessages);
+
+    return [...existingMsgs, ...streamingMsgs, ...toolMessagesArray];
+  };
+
   const handleSendMessage = (e) => {
     start();
     e.preventDefault();
@@ -191,6 +260,7 @@ const useChat = () => {
     selectChat,
     deleteChat,
     MessageStatus,
+    displayMessages: getDisplayMessages(),
   };
 };
 
